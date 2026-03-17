@@ -13,7 +13,7 @@ Build a mobile-first multilingual visitor information web app called "Welcome De
 
 DESIGN SYSTEM:
 - Color palette: warm white (#FAFAF8) background, deep navy (#1B2A4A) for headings and primary text, coral (#E8654A) for the persistent emergency button and urgent actions, teal (#2A9D8F) for interactive cards and links, soft gray (#E8E6E1) for card backgrounds and dividers. 
-- Typography: clean sans-serif (Inter or similar). Large body text (18px minimum) because visitors may be reading in a second language under stress.
+- Typography: Inter for Latin scripts, system default (Noto Sans preferred) for CJK, Arabic, Hindi, and other non-Latin scripts. Font weights: 400 for body, 600 for card labels, 700 for headings. Large body text (18px minimum) because visitors may be reading in a second language under stress.
 - Border radius: 12px on cards. 24px on buttons. Rounded and approachable.
 - Spacing: generous. Don't crowd the screen. White space communicates calm.
 - Icons: use Lucide icons throughout. Simple line style.
@@ -25,6 +25,7 @@ LANGUAGE DETECTION:
 - If the detected language isn't supported, fall back to English.
 - Store the selected language in React state (context provider) so all components can access it.
 - Show a language selector in the top header — a small globe icon that opens a dropdown with language names written in their own script (e.g., "Español", "Português", "العربية", "日本語"). Changing the language updates the entire UI immediately.
+- When the language is set to Arabic (ar), set dir="rtl" on the root HTML element and mirror the layout — text right-aligned, navigation flipped, card order preserved. Remove the RTL direction when switching to any other language.
 
 ROUTING AND PAGES:
 
@@ -36,7 +37,7 @@ A clean page with:
 - A grid of 11 city cards, 2 columns on mobile, 3 on tablet, 4 on desktop. Each card shows:
   - City name (bold)
   - State abbreviation below it (lighter text)
-  - A subtle background gradient or color accent unique to each city
+  - A subtle background gradient using 3-4 variations from the teal-to-navy range, rotating across the 11 cities. Not all unique — just enough variation to avoid visual monotony.
 - Cities: Boston (MA), Kansas City (MO), Los Angeles (CA), Seattle (WA), Miami (FL), Atlanta (GA), Philadelphia (PA), San Francisco (CA), New York/New Jersey (NY/NJ), Houston (TX), Dallas (TX)
 - Below the grid: "Need help right now?" with a coral emergency button that links to a generic emergency page.
 
@@ -45,9 +46,9 @@ The main experience. Task-based layout — NOT a scrolling content page. Show 5 
 
 Card 1: "I need help now" (coral background, white text, alert-triangle icon)
 - Tapping opens a dedicated help page with:
-  - A large one-tap CALL button (tel: link) for the city's legal hotline. This is the most prominent element.
+  - A large one-tap CALL button (tel: link) for the city's legal hotline. This is the most prominent element. On desktop viewports, show the phone number as selectable text instead of a call button.
   - Below it: "Also alert us on WhatsApp" button (teal) that opens wa.me deep link with pre-filled text: "EMERGENCY [city] [language]"
-  - Below that: local emergency number (911), police non-emergency, nearest hospital
+  - Below that: a collapsible "Other emergency numbers" section (defaults to closed) containing local emergency number (911), police non-emergency, nearest hospital.
   - All content pulled from placeholder data for now.
 
 Card 2: "My rights" (white background, navy text, shield icon)
@@ -62,8 +63,9 @@ Card 4: "Contact my consulate" (white background, navy text, building icon)
 - Tapping opens a page with a search bar at the top. Visitor types their country name and sees matching consulate results.
 - Placeholder: 5-6 sample consulate entries (Argentina, England, Germany, Mexico, Japan, Brazil) with address, phone, hours.
 - Search should filter in real time as the visitor types.
+- Search should match against both the English country name and the country name in the visitor's selected language (e.g., a Japanese visitor searching '日本' should find Japan's consulate).
 
-Card 5: "Getting around" (white background, teal accent, bus icon)
+Card 5: "Get to the game" (white background, teal accent, bus icon)
 - Tapping opens a page with transit information.
 - Placeholder: a paragraph about getting from the airport to the fan zone, local transit options.
 
@@ -74,6 +76,7 @@ PERSISTENT EMERGENCY BUTTON:
 - Tapping it initiates a phone call via tel: link to the city's legal hotline number.
 - Has a subtle shadow to float above page content.
 - 60px tall, full width minus 16px margins on each side, centered.
+- Max-width 480px on tablet and desktop viewports.
 
 WHATSAPP ENTRY POINT:
 - On every city page, below the 5 task cards and above the footer: a teal button with the WhatsApp icon that says "Text us on WhatsApp" (translatable). 
@@ -88,7 +91,7 @@ VOICE HELP SECTION:
 
 HEADER:
 - Sticky top header on all pages.
-- Left: back arrow (on subpages) or Welcome Desk wordmark (on landing).
+- Left: back arrow (on subpages) or Welcome Desk wordmark (on landing). The back arrow always returns to the parent city page, not the landing page.
 - Center: city name (on city pages).
 - Right: globe icon → language dropdown.
 
@@ -105,7 +108,7 @@ Create sample data for Miami and Kansas City with realistic placeholder content.
 
 MAKE IT A PWA:
 - Add a web app manifest with: name "Welcome Desk", short_name "WelcomeDesk", start_url "/", display "standalone", theme_color "#1B2A4A", background_color "#FAFAF8".
-- Add a basic service worker that caches the app shell and the local data file for offline access.
+- Add a service worker using a cache-first strategy for the app shell (HTML, JS, CSS) and the city data JSON file. On subsequent visits, serve from cache and update in the background.
 - The app should work offline with cached content after the first visit.
 
 PERFORMANCE:
